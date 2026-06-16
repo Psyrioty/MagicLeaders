@@ -1,0 +1,6 @@
+name: MagicLeaders
+version: '${version}'
+
+main: org.psyrioty.magicLeaders.MagicLeaders
+api-version: '1.21.11'
+load: POSTWORLD
