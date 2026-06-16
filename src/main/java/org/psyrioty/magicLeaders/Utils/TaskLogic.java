@@ -12,4 +12,9 @@ public class TaskLogic {
 
         }, 20L * 60L, 20L * 60L);
     }
+
+    public static void Stop(){
+        update.cancel();
+        update = null;
+    }
 }

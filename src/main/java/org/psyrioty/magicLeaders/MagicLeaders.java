@@ -5,6 +5,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.psyrioty.magicLeaders.Utils.TaskLogic;
 
 import java.nio.file.Path;
 
@@ -20,7 +21,7 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        TaskLogic.Stop();
     }
 
     public static Plugin getPlugin(){
