@@ -1,5 +1,8 @@
 package org.psyrioty.magicLeaders.Objects;
 
+import org.bukkit.Bukkit;
+import org.psyrioty.magicLeaders.MagicLeaders;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +25,11 @@ public class Leaderboard {
 
     public void CheckPeriod(){
         if (!LocalDate.now().isBefore(startDate.plusDays(period))) {
+            try{
 
+            }catch (Exception exception){
+                Bukkit.getLogger().severe("MagicLeaders error Leaderboard.java CheckPeriod() " + exception.getMessage());
+            }
         }
     }
 

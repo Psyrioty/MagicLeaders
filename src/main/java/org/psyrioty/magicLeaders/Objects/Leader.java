@@ -2,6 +2,7 @@ package org.psyrioty.magicLeaders.Objects;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.psyrioty.magicLeaders.MagicLeaders;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,15 @@ public class Leader {
     }
 
     public void giveReward(){
+        if(player == null){
+            return;
+        }
+
+        if(!player.isOnline() || player.isDead()){
+            return;
+        }
+
+
         for(Leaderboard leaderboard: leaderboards){
             for(String command: leaderboard.getRewardCommands()){
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player_name%", player.getName()));
