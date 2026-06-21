@@ -12,15 +12,21 @@ public class Leaderboard {
     int period; //количество дней для сброса
     LocalDate startDate; //когда начался отсчет
     List<String> rewardCommands = new ArrayList<>(); //скорей всего так и сделаю, или хз..
+    String name;
+    String id;
 
-    Leaderboard(
+    public Leaderboard(
             String placeholder,
             int period,
-            LocalDate startDate
+            LocalDate startDate,
+            String name,
+            String id
     ){
         this.placeholder = placeholder;
         this.period = period;
         this.startDate = startDate;
+        this.name = name;
+        this.id = id;
     }
 
     public void CheckPeriod(){

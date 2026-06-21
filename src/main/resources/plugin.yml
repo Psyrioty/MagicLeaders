@@ -4,3 +4,13 @@ version: '${version}'
 main: org.psyrioty.magicLeaders.MagicLeaders
 api-version: '1.21.11'
 load: POSTWORLD
+depend:
+  - PlaceholderAPI
+
+
+commands:
+  costume:
+    description: MagicLeaders plugin commands
+    usage: /leaders
+    permission: group.default
+    permission-message: "Not permission"
