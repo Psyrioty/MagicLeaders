@@ -13,7 +13,7 @@ import java.util.UUID;
 public class Leader {
     OfflinePlayer offlinePlayer;
     UUID uuid;
-    HashMap<Leaderboard, Double> leaderboards = new HashMap<>(); //для наградок, потом буду смотреть есть ли что давать игроку при входе
+    HashMap<Leaderboard, Double> leaderboards = new HashMap<>(); //очки у определенного лидерборда
     boolean rewardGave = false;
 
     public Leader(

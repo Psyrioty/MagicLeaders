@@ -81,6 +81,9 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
         }
     }
 
+    public static Set<Leaderboard> getLeaderboards() {
+        return leaderboards;
+    }
 
     public static Set<LeaderboardMenu> getLeaderboardMenuSet() {
         return leaderboardMenuSet;
@@ -116,16 +119,35 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
 
             LocalDate startDate = LocalDate.parse(stringDate);
 
+            List<Leader> leadersTop = Requests.getTopLeaders(id);
+
             Leaderboard leaderboard = new Leaderboard(
                     placeholder,
                     period,
                     startDate,
                     name,
-                    id
+                    id,
+
+                    checkLeader(leadersTop.get(0)),
+                    checkLeader(leadersTop.get(1)),
+                    checkLeader(leadersTop.get(2))
             );
 
             leaderboards.add(leaderboard);
         }
+    }
+
+    private Leader checkLeader(Leader leader){
+        if(leader == null){
+            return null;
+        }
+
+        for(Leader leaderOld: leaders){
+            if(leaderOld.getUuid().equals(leader.getUuid())){
+                return leaderOld;
+            }
+        }
+        return leader;
     }
 
     private static List<File> getLeaderboardYmlFiles(JavaPlugin plugin) {

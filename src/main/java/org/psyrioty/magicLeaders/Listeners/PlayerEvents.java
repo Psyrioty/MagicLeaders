@@ -32,7 +32,6 @@ public class PlayerEvents implements Listener {
         leaders.add(leader);
     }
 
-    /*
     @EventHandler
     private void PlayerExit(PlayerQuitEvent event){
         Set<Leader> leaders = MagicLeaders.getLeaders();
@@ -48,5 +47,4 @@ public class PlayerEvents implements Listener {
             }
         }
     }
-     */
 }

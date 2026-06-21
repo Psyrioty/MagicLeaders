@@ -5,7 +5,9 @@ import org.psyrioty.magicLeaders.MagicLeaders;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Leaderboard {
     String placeholder;
@@ -15,24 +17,41 @@ public class Leaderboard {
     String name;
     String id;
 
+
+    //-----ТОПЫ----
+    Leader topOne;
+    Leader topTwo;
+    Leader topThree;
+    //=============
+
     public Leaderboard(
             String placeholder,
             int period,
             LocalDate startDate,
             String name,
-            String id
+            String id,
+
+            Leader topOne,
+            Leader topTwo,
+            Leader topThree
     ){
         this.placeholder = placeholder;
         this.period = period;
         this.startDate = startDate;
         this.name = name;
         this.id = id;
+
+        this.topOne = topOne;
+        this.topTwo = topTwo;
+        this.topThree = topThree;
     }
 
     public void CheckPeriod(){
         if (!LocalDate.now().isBefore(startDate.plusDays(period))) {
             try{
-
+                topOne.giveReward();
+                topTwo.giveReward();
+                topThree.giveReward();
             }catch (Exception exception){
                 Bukkit.getLogger().severe("MagicLeaders error Leaderboard.java CheckPeriod() " + exception.getMessage());
             }
