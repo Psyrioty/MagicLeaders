@@ -21,7 +21,9 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -45,11 +47,16 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
 
         //-----БД--------
         createDatabase(plugin);
+        try {
+            Requests.connect(plugin.getDataPath() + "/Database/db.sqlite");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         Requests.createTables();
         //================
 
         //-----КОМАНДЫ-----
-        this.getCommand("leaders").setExecutor(new MagicLeaders());
+        this.getCommand("leaders").setExecutor(new MainCommand());
         //=================
 
         getAllLeaderboards();
@@ -108,6 +115,13 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
 
             String id = file.getName().toLowerCase().replace(".yml", "");
 
+            Bukkit.getLogger().info(
+                    placeholder + "\n" +
+                            period + "\n" +
+                            stringDate + "\n" +
+                            name + "\n"
+            );
+
             if(
                     placeholder == null ||
                     period == 0 ||
@@ -117,7 +131,8 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
                 continue;
             }
 
-            LocalDate startDate = LocalDate.parse(stringDate);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            LocalDate startDate = LocalDate.parse(stringDate, formatter);
 
             List<Leader> leadersTop = Requests.getTopLeaders(id);
 

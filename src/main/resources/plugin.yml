@@ -9,7 +9,7 @@ depend:
 
 
 commands:
-  costume:
+  leaders:
     description: MagicLeaders plugin commands
     usage: /leaders
     permission: group.default

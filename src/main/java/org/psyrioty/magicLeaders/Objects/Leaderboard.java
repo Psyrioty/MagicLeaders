@@ -46,6 +46,22 @@ public class Leaderboard {
         this.topThree = topThree;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public Leader getTopOne() {
+        return topOne;
+    }
+
+    public Leader getTopThree() {
+        return topThree;
+    }
+
+    public Leader getTopTwo() {
+        return topTwo;
+    }
+
     public void CheckPeriod(){
         if (!LocalDate.now().isBefore(startDate.plusDays(period))) {
             try{

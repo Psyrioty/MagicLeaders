@@ -148,7 +148,7 @@ public class Requests {
                         "INSERT INTO Reward(commands, leaderId) VALUES(?, ?)")) {
                     StringBuilder commandString = new StringBuilder();
                     for(String command: commands) {
-                        commandString.append(command);
+                        commandString.append(command).append("\n");
                     }
 
                     rewardStatement.setString(1, commandString.toString());
