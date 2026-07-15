@@ -11,17 +11,29 @@ import java.util.Set;
 public class TaskLogic {
     static BukkitTask update;
     static Set<Leader> leaderSet;
+    static Set<Leaderboard> leaderboardSet;
+
+    public TaskLogic(){
+        leaderSet = MagicLeaders.getLeaders();
+        leaderboardSet = MagicLeaders.getLeaderboards();
+    }
 
     public static void Update(){
         update = Bukkit.getScheduler().runTaskTimerAsynchronously(MagicLeaders.getPlugin(), () -> {
-            for(Leaderboard leaderboard: MagicLeaders.getLeaderboards()){
-                leaderboard.CheckPeriod();
+            if (leaderboardSet == null){
+                leaderboardSet = MagicLeaders.getLeaderboards();
             }
 
-            for(Leader leader: leaderSet){
-                if(leader.isRewardGave()){
-                    leader.giveReward();
+            if (leaderSet == null){
+                leaderSet = MagicLeaders.getLeaders();
+            }
+
+            for(Leaderboard leaderboard: leaderboardSet){
+                for (Leader leader: leaderSet){
+                    leaderboard.CheckValue(leader);
                 }
+
+                leaderboard.CheckPeriod();
             }
         }, 20L * 60L, 20L * 60L);
     }

@@ -21,7 +21,7 @@ public class GUIEvents implements Listener {
         event.setCancelled(true);
     }
 
-    /*
+
     @EventHandler
     private void onClose(InventoryCloseEvent event){
         Inventory inventory = event.getInventory();
@@ -38,5 +38,5 @@ public class GUIEvents implements Listener {
             }
         }
     }
-    */
+
 }

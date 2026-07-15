@@ -73,6 +73,13 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         TaskLogic.Stop();
+        for(LeaderboardMenu leaderboardMenu: leaderboardMenuSet){
+            if(leaderboardMenu == null){
+                continue;
+            }
+
+            leaderboardMenu.getInventory().close();
+        }
     }
 
     public static Plugin getPlugin(){

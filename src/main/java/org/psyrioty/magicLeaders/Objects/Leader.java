@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.UUID;
 
 public class Leader {
-    OfflinePlayer offlinePlayer;
-    UUID uuid;
-    HashMap<Leaderboard, Double> leaderboards = new HashMap<>(); //очки у определенного лидерборда
-    boolean rewardGave = false;
+    private OfflinePlayer offlinePlayer;
+    private UUID uuid;
+    private HashMap<Leaderboard, List<Double>> leaderboards = new HashMap<>(); //очки у определенного лидерборда
+    private boolean rewardGave = false;
 
     public Leader(
             OfflinePlayer player
@@ -40,6 +40,10 @@ public class Leader {
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player_name%", player.getName()));
             }
         }
+    }
+
+    public HashMap<Leaderboard, List<Double>> getLeaderboards() {
+        return leaderboards;
     }
 
     public UUID getUuid() {

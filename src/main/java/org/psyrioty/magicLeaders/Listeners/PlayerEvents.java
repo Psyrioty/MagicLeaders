@@ -22,6 +22,7 @@ public class PlayerEvents implements Listener {
 
         for(Leader leader: leaders){
             if(leader.getUuid().equals(player.getUniqueId())){
+                //leader.setPlayer(Bukkit.getOfflinePlayer(player.getUniqueId()));
                 return;
             }
         }
@@ -32,7 +33,7 @@ public class PlayerEvents implements Listener {
         leaders.add(leader);
     }
 
-    @EventHandler
+    /*@EventHandler
     private void PlayerExit(PlayerQuitEvent event){
         Set<Leader> leaders = MagicLeaders.getLeaders();
 
@@ -46,5 +47,5 @@ public class PlayerEvents implements Listener {
                 return;
             }
         }
-    }
+    }*/
 }

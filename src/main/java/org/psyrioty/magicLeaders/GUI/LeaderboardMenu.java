@@ -13,6 +13,7 @@ import org.psyrioty.magicLeaders.Objects.Leader;
 import org.psyrioty.magicLeaders.Objects.Leaderboard;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -22,6 +23,7 @@ public class LeaderboardMenu implements InventoryHolder {
     public LeaderboardMenu(Player player){
         createInventory();
         player.openInventory(inventory);
+        MagicLeaders.getLeaderboardMenuSet().add(this);
     }
 
     private void createInventory(){
@@ -50,28 +52,17 @@ public class LeaderboardMenu implements InventoryHolder {
 
             List<String> lore = new ArrayList<>();
             lore.add("");
-            Leader one = leaderboard.getTopOne();
 
-            if(one != null) {
-                lore.add(one.getOfflinePlayer().getName());
-            }else{
-                lore.add("Неизвестно");
+            HashMap<Leader, Double> tops = leaderboard.getTops();
+
+            for(Leader leader: tops.keySet()){
+                lore.add(leader.getOfflinePlayer().getName() + " " + tops.get(leader));
             }
 
-            Leader two = leaderboard.getTopTwo();
-
-            if(two != null) {
-                lore.add(two.getOfflinePlayer().getName());
-            }else{
-                lore.add("Неизвестно");
-            }
-
-            Leader three = leaderboard.getTopThree();
-
-            if(three != null) {
-                lore.add(three.getOfflinePlayer().getName());
-            }else{
-                lore.add("Неизвестно");
+            if(tops.size() < 3){
+                for (int j = tops.size(); j < 3; j++){
+                    lore.add("Неизвестно");
+                }
             }
 
             itemMeta.setLore(lore);
