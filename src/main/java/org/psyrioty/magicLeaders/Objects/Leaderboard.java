@@ -1,6 +1,7 @@
 package org.psyrioty.magicLeaders.Objects;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.psyrioty.magicLeaders.Database.Requests;
 import org.psyrioty.magicLeaders.MagicLeaders;
@@ -169,6 +170,16 @@ public class Leaderboard {
         if(values == null){
             values = new LeaderValue(value);
             values.setValue(value);
+
+            Bukkit.getScheduler().runTaskAsynchronously(MagicLeaders.getPlugin(), () -> {
+                OfflinePlayer player = leader.getOfflinePlayer();
+
+                Requests.addLeaderboard(
+                        player.getUniqueId().toString(),
+                        name,
+                        value
+                );
+            });
         }else{
             values.setValue(value);
         }

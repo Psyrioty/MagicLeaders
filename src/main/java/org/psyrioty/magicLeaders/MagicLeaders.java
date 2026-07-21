@@ -1,8 +1,10 @@
 package org.psyrioty.magicLeaders;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -16,7 +18,9 @@ import org.psyrioty.magicLeaders.Listeners.PlayerEvents;
 import org.psyrioty.magicLeaders.Objects.Leader;
 import org.psyrioty.magicLeaders.Objects.LeaderValue;
 import org.psyrioty.magicLeaders.Objects.Leaderboard;
+import org.psyrioty.magicLeaders.Objects.Placeholder;
 import org.psyrioty.magicLeaders.Utils.APIHelper;
+import org.psyrioty.magicLeaders.Utils.PlaceholderAPIPlugin;
 import org.psyrioty.magicLeaders.Utils.TaskLogic;
 
 import java.io.File;
@@ -40,6 +44,8 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
 
     PluginManager pm;
 
+    static Set<Placeholder> placeholders = new HashSet<>();
+
     @Override
     public void onEnable() {
         plugin = this;
@@ -59,6 +65,7 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
         leaders = Requests.getLeaders();
         getAllLeaderboards();
         createAllLeaderValue();
+        getAllPlaceholders();
         //================
 
         //-----КОМАНДЫ-----
@@ -73,6 +80,10 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
         for(Leader leader: leaders){
             for(Leaderboard leaderboard: leaderboards){
                 LeaderValue leaderValue = Requests.getLeaderboard(leader, leaderboard.getName());
+
+                if(leaderValue == null){
+                    continue;
+                }
 
                 leader.getLeaderboards().put(leaderboard, leaderValue);
             }
@@ -183,6 +194,10 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
         }
     }
 
+    public static Set<Placeholder> getPlaceholders() {
+        return placeholders;
+    }
+
     private Leader checkLeader(Leader leader){
         if(leader == null){
             return null;
@@ -222,6 +237,47 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
         return result;
     }
     //===================================================================================
+
+    //---------------------------ПЛЭЙСХОЛЕДРЫ---------------------------------
+    private static void getAllPlaceholders(){
+        List<File> placeholderFiles = getPlaceholdersYmlFiles();
+
+        for (File file: placeholderFiles){
+            try{
+                YamlConfiguration yamlConfiguration = YamlConfiguration.loadConfiguration(file);
+
+                String name = file.getName().replace(".yml", "");
+                String placeholder = yamlConfiguration.getString("placeholder");
+            }catch (Exception exception){}
+        }
+    }
+
+    private static List<File> getPlaceholdersYmlFiles() {
+        File folder = new File(plugin.getDataFolder(), "Placeholders");
+
+        if (!folder.exists() && !folder.mkdirs()) {
+            return new ArrayList<>();
+        }
+
+        File[] files = folder.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(".yml");
+            }
+        });
+
+        List<File> result = new ArrayList<>();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    result.add(file);
+                }
+            }
+        }
+
+        return result;
+    }
+    //========================================================================
 
     //---------------------------БАЗА ДАННЫХ----------------------------------
     private static void createDatabase(JavaPlugin plugin) {

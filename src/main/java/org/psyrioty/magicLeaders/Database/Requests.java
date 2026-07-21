@@ -6,6 +6,7 @@ import org.psyrioty.magicLeaders.MagicLeaders;
 import org.psyrioty.magicLeaders.Objects.Leader;
 import org.psyrioty.magicLeaders.Objects.LeaderValue;
 import org.psyrioty.magicLeaders.Objects.Leaderboard;
+import org.psyrioty.magicLeaders.Objects.Placeholder;
 import org.psyrioty.magicLeaders.Utils.APIHelper;
 
 import java.sql.*;
@@ -70,6 +71,74 @@ public class Requests {
                     FOREIGN KEY (leaderId) REFERENCES Leader(id)
                 )
             """);
+
+            statement.execute("""
+                CREATE TABLE IF NOT EXISTS Placeholder (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    uuid TEXT NOT NULL,
+                    placeholder TEXT NOT NULL,
+                    value REAL NOT NULL
+                )
+            """);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addPlaceholder(String uuid, String placeholder, double value) {
+        try (PreparedStatement statement = connection.prepareStatement("""
+            INSERT INTO Placeholder(uuid, placeholder, value)
+            VALUES(?, ?, ?)
+            """)) {
+
+            statement.setString(1, uuid);
+            statement.setString(2, placeholder);
+            statement.setDouble(3, value);
+
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<Placeholder> getPlaceholders() {
+        List<Placeholder> placeholders = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement("""
+            SELECT *
+            FROM Placeholder
+            """);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                placeholders.add(new Placeholder(
+                        resultSet.getString("placeholder"),
+                        Bukkit.getOfflinePlayer(UUID.fromString(resultSet.getString("uuid"))),
+                        resultSet.getDouble("value")
+                ));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return placeholders;
+    }
+
+    public static void updatePlaceholderValue(String uuid, String placeholder, double value) {
+        try (PreparedStatement statement = connection.prepareStatement("""
+            UPDATE Placeholder
+            SET value = ?
+            WHERE uuid = ? AND placeholder = ?
+            """)) {
+
+            statement.setDouble(1, value);
+            statement.setString(2, uuid);
+            statement.setString(3, placeholder);
+
+            statement.executeUpdate();
 
         } catch (SQLException e) {
             e.printStackTrace();

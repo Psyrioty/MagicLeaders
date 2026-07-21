@@ -78,21 +78,21 @@ public class LeaderboardMenu implements InventoryHolder {
 
             for(Leader leader: tops.keySet()){
                 lore.add(mm.deserialize(
-                        "<#DDA0DD>"  + leader.getOfflinePlayer().getName() + " <#B50778>" + tops.get(leader)
+                        "<#98FB98>"  + leader.getOfflinePlayer().getName() + " <#3CB371>" + tops.get(leader)
                 ));
+            }
+
+            if(tops.size() < 3){
+                for (int j = tops.size(); j < 3; j++){
+                    lore.add(mm.deserialize(
+                            "<#98FB98>Неизвестно"
+                    ));
+                }
             }
 
             lore.add(mm.deserialize(
                     ""
             ));
-
-            if(tops.size() < 3){
-                for (int j = tops.size(); j < 3; j++){
-                    lore.add(mm.deserialize(
-                            "<#DDA0DD>Неизвестно"
-                    ));
-                }
-            }
 
             itemMeta.lore(lore);
 

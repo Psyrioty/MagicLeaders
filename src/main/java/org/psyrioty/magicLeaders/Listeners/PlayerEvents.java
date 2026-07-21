@@ -25,6 +25,10 @@ public class PlayerEvents implements Listener {
 
         Player player = event.getPlayer();
 
+        if(player.hasPermission("magicleaders.admin")){
+            return;
+        }
+
         checkRewards(player);
 
         for(Leader leader: leaders){
