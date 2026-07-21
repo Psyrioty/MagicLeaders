@@ -1,5 +1,7 @@
 package org.psyrioty.magicLeaders.GUI;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -27,7 +29,7 @@ public class LeaderboardMenu implements InventoryHolder {
     }
 
     private void createInventory(){
-        this.inventory = Bukkit.createInventory(this, 54);
+        this.inventory = Bukkit.createInventory(this, 54, "Топы");
         serializeInventory();
     }
 
@@ -35,7 +37,16 @@ public class LeaderboardMenu implements InventoryHolder {
         for(int i = 0; i < 9; i++){
             ItemStack itemStack = new ItemStack(Material.RED_STAINED_GLASS_PANE);
             ItemMeta itemMeta = itemStack.getItemMeta();
-            itemMeta.setDisplayName("");
+            itemMeta.setDisplayName(" ");
+
+            /*
+            MiniMessage mm = MiniMessage.miniMessage();
+            Component component = mm.deserialize(
+                    "<#DDA0DD>Неизвестно<#DDA0DD>"
+            );
+            itemMeta.displayName(component);
+            */
+
             itemStack.setItemMeta(itemMeta);
 
             inventory.setItem(i, itemStack);
@@ -46,26 +57,44 @@ public class LeaderboardMenu implements InventoryHolder {
         Set<Leaderboard> leaderboardSet = MagicLeaders.getLeaderboards();
 
         for (Leaderboard leaderboard: leaderboardSet){
+            MiniMessage mm = MiniMessage.miniMessage();
+
             ItemStack itemStack = new ItemStack(Material.PLAYER_HEAD);
             ItemMeta itemMeta = itemStack.getItemMeta();
-            itemMeta.setDisplayName(leaderboard.getName());
+            itemMeta.displayName(
+                    mm.deserialize(
+                            leaderboard.getName()
+                    )
+            );
 
-            List<String> lore = new ArrayList<>();
-            lore.add("");
+
+            List<Component> lore = new ArrayList<>();
 
             HashMap<Leader, Double> tops = leaderboard.getTops();
 
+            lore.add(mm.deserialize(
+                    ""
+            ));
+
             for(Leader leader: tops.keySet()){
-                lore.add(leader.getOfflinePlayer().getName() + " " + tops.get(leader));
+                lore.add(mm.deserialize(
+                        "<#DDA0DD>"  + leader.getOfflinePlayer().getName() + " <#B50778>" + tops.get(leader)
+                ));
             }
+
+            lore.add(mm.deserialize(
+                    ""
+            ));
 
             if(tops.size() < 3){
                 for (int j = tops.size(); j < 3; j++){
-                    lore.add("Неизвестно");
+                    lore.add(mm.deserialize(
+                            "<#DDA0DD>Неизвестно"
+                    ));
                 }
             }
 
-            itemMeta.setLore(lore);
+            itemMeta.lore(lore);
 
             itemStack.setItemMeta(itemMeta);
             inventory.setItem(i + 9, itemStack);

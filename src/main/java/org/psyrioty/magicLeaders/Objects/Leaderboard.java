@@ -1,9 +1,13 @@
 package org.psyrioty.magicLeaders.Objects;
 
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.psyrioty.magicLeaders.Database.Requests;
 import org.psyrioty.magicLeaders.MagicLeaders;
 import org.psyrioty.magicLeaders.Utils.PlaceholderAPIPlugin;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,9 +16,17 @@ public class Leaderboard {
     String placeholder;
     int period; //количество дней для сброса
     LocalDate startDate; //когда начался отсчет
-    List<String> rewardCommands = new ArrayList<>(); //скорей всего так и сделаю, или хз..
+
+
+    List<String> rewardCommandsTopOne = new ArrayList<>(); //скорей всего так и сделаю, или хз..
+    List<String> rewardCommandsTopTwo = new ArrayList<>(); //скорей всего так и сделаю, или хз..
+    List<String> rewardCommandsTopThree = new ArrayList<>(); //скорей всего так и сделаю, или хз..
+
+
     String name;
     String id;
+    FileConfiguration config;
+    File file;
 
 
     //-----ТОПЫ----
@@ -27,6 +39,11 @@ public class Leaderboard {
             LocalDate startDate,
             String name,
             String id,
+            List<String> rewardCommandsTopOne,
+            List<String> rewardCommandsTopTwo,
+            List<String> rewardCommandsTopThree,
+            FileConfiguration config,
+            File file,
 
             Leader topOne,
             Leader topTwo,
@@ -37,42 +54,41 @@ public class Leaderboard {
         this.startDate = startDate;
         this.name = name;
         this.id = id;
+        this.rewardCommandsTopOne = rewardCommandsTopOne;
+        this.rewardCommandsTopTwo = rewardCommandsTopTwo;
+        this.rewardCommandsTopThree = rewardCommandsTopThree;
+        this.config = config;
+        this.file = file;
 
         if(topOne != null) {
-            List<Double> values = topOne.getLeaderboards().get(this);
+            LeaderValue values = topOne.getLeaderboards().get(this);
 
             double value = 0;
 
             if(values != null){
-                if(values.size() == 2){
-                    value = values.getLast() - values.getFirst();
-                }
+                value = values.getResult();
             }
 
             tops.put(topOne, value);
         }
         if(topTwo != null) {
-            List<Double> values = topTwo.getLeaderboards().get(this);
+            LeaderValue values = topTwo.getLeaderboards().get(this);
 
             double value = 0;
 
             if(values != null){
-                if(values.size() == 2){
-                    value = values.getLast() - values.getFirst();
-                }
+                value = values.getResult();
             }
 
             tops.put(topTwo, value);
         }
         if(topThree != null) {
-            List<Double> values = topThree.getLeaderboards().get(this);
+            LeaderValue values = topThree.getLeaderboards().get(this);
 
             double value = 0;
 
             if(values != null){
-                if(values.size() == 2){
-                    value = values.getLast() - values.getFirst();
-                }
+                value = values.getResult();
             }
 
             tops.put(topThree, value);
@@ -90,8 +106,28 @@ public class Leaderboard {
     public void CheckPeriod(){
         if (!LocalDate.now().isBefore(startDate.plusDays(period))) {
             try{
+
+                resetAll();
+
+                int i = 0;
                 for(Leader leader: tops.keySet()){
-                    leader.giveReward();
+                    Bukkit.getLogger().info(leader.getOfflinePlayer().getName());
+                    switch (i){
+                        case 0:
+                            leader.giveReward(rewardCommandsTopOne);
+                            break;
+                        case 1:
+                            leader.giveReward(rewardCommandsTopTwo);
+                            break;
+                        case 2:
+                            leader.giveReward(rewardCommandsTopThree);
+                            break;
+                    }
+
+                    if(i > 2){
+                        break;
+                    }
+                    i++;
                 }
             }catch (Exception exception){
                 Bukkit.getLogger().severe("MagicLeaders error Leaderboard.java CheckPeriod() " + exception.getMessage());
@@ -99,22 +135,42 @@ public class Leaderboard {
         }
     }
 
-    public void CheckValue(Leader leader){
-        Bukkit.getLogger().info(leader.getOfflinePlayer() + "");
+    private void resetAll() throws IOException {
+        startDate = LocalDate.now();
 
+        for(Leader leader: MagicLeaders.getLeaders()){
+            double startValue = PlaceholderAPIPlugin.getPlaceholderDouble(placeholder, leader.getOfflinePlayer());
+
+            config.set("startDate", startDate.toString());
+            config.save(file);
+
+            LeaderValue leaderValueNew = new LeaderValue(
+                    startValue
+            );
+
+            leader.getLeaderboards().put(this, leaderValueNew);
+            Bukkit.getScheduler().runTaskAsynchronously(MagicLeaders.getPlugin(), () -> {
+                Requests.updateStartValue(
+                        leader.getOfflinePlayer().getUniqueId().toString(),
+                        name,
+                        startValue
+                );
+            });
+        }
+    }
+
+    public void CheckValue(Leader leader){
         double value = PlaceholderAPIPlugin.getPlaceholderDouble(placeholder, leader.getOfflinePlayer());
 
-        HashMap<Leaderboard, List<Double>> leaderboards = leader.getLeaderboards();
+        HashMap<Leaderboard, LeaderValue> leaderboards = leader.getLeaderboards();
 
-        List<Double> values = leaderboards.get(this);
+        LeaderValue values = leaderboards.get(this);
 
         if(values == null){
-            values = new ArrayList<>();
-            values.add(value);
-            values.add(value);
+            values = new LeaderValue(value);
+            values.setValue(value);
         }else{
-            values.remove(1);
-            values.add(value);
+            values.setValue(value);
         }
 
         leaderboards.put(this, values);
@@ -122,15 +178,17 @@ public class Leaderboard {
         checkLeads(leader, values);
     }
 
-    private void checkLeads(Leader leader, List<Double> values){
+    public String getPlaceholder() {
+        return placeholder;
+    }
+
+    private void checkLeads(Leader leader, LeaderValue values){
 
         HashMap<Leader, Double> newTops = new HashMap<>();
 
         boolean replace = false;
 
-        double value = values.getLast() - values.getFirst();
-
-        Bukkit.getLogger().info(values.getLast() + " " + values.getFirst());
+        double value = values.getResult();
 
         if(tops.size() < 3){
             tops.put(leader, value);
@@ -183,9 +241,5 @@ public class Leaderboard {
                         LinkedHashMap::new
                 ));
         //tops = newTops;
-    }
-
-    public List<String> getRewardCommands() {
-        return rewardCommands;
     }
 }

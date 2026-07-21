@@ -2,8 +2,11 @@ package org.psyrioty.magicLeaders.Database;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.psyrioty.magicLeaders.MagicLeaders;
 import org.psyrioty.magicLeaders.Objects.Leader;
+import org.psyrioty.magicLeaders.Objects.LeaderValue;
 import org.psyrioty.magicLeaders.Objects.Leaderboard;
+import org.psyrioty.magicLeaders.Utils.APIHelper;
 
 import java.sql.*;
 import java.util.*;
@@ -53,7 +56,7 @@ public class Requests {
                 CREATE TABLE IF NOT EXISTS Leaderboard (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     leaderboardTag TEXT NOT NULL,
-                    value REAL NOT NULL,
+                    startValue REAL NOT NULL,
                     leaderId INTEGER NOT NULL,
                     FOREIGN KEY (leaderId) REFERENCES Leader(id)
                 )
@@ -82,7 +85,7 @@ public class Requests {
 
             while (resultSet.next()) {
                 String uuid = resultSet.getString("uuid");
-                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(UUID.fromString(uuid));
 
                 leaders.add(new Leader(
                         offlinePlayer
@@ -94,6 +97,28 @@ public class Requests {
         }
 
         return leaders;
+    }
+
+    public static void addLeader(Leader leader) {
+        OfflinePlayer offlinePlayer = leader.getOfflinePlayer();
+
+        if(offlinePlayer == null){
+            return;
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement("""
+            INSERT OR IGNORE INTO Leader(uuid, name)
+            VALUES(?, ?)
+            """)) {
+
+            statement.setString(1, offlinePlayer.getUniqueId().toString());
+            statement.setString(2, offlinePlayer.getName());
+
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static List<String> getRewards(String uuid) {
@@ -130,6 +155,24 @@ public class Requests {
         return commands;
     }
 
+    public static void removeRewards(String uuid) {
+        try (PreparedStatement statement = connection.prepareStatement("""
+            DELETE FROM Reward
+            WHERE leaderId = (
+                SELECT id
+                FROM Leader
+                WHERE uuid = ?
+            )
+            """)) {
+
+            statement.setString(1, uuid);
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void addReward(String uuid, List<String> commands) {
         try (PreparedStatement leaderStatement = connection.prepareStatement(
                 "SELECT id FROM Leader WHERE uuid = ?")) {
@@ -163,6 +206,7 @@ public class Requests {
         }
     }
 
+    /*
     public static List<Leader> getTopLeaders(String leaderboardTag) {
         List<Leader> leaders = new ArrayList<>();
 
@@ -179,9 +223,15 @@ public class Requests {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    leaders.add(new Leader(
-                            Bukkit.getOfflinePlayer(resultSet.getString("uuid"))
-                    ));
+                    String uuid = resultSet.getString("uuid");
+                    Leader leader = APIHelper.findLeaderForUUID(uuid);
+                    if(leader == null) {
+                        leaders.add(new Leader(
+                                Bukkit.getOfflinePlayer(UUID.fromString(uuid))
+                        ));
+                    }else{
+                        leaders.add(leader);
+                    }
                 }
             }
 
@@ -194,5 +244,90 @@ public class Requests {
         }
 
         return leaders;
+    }
+    */
+
+    public static void addLeaderboard(String uuid, String leaderboardTag, double startValue) {
+        try (PreparedStatement leaderStatement = connection.prepareStatement(
+                "SELECT id FROM Leader WHERE uuid = ?")) {
+
+            leaderStatement.setString(1, uuid);
+
+            try (ResultSet resultSet = leaderStatement.executeQuery()) {
+
+                if (!resultSet.next()) {
+                    return;
+                }
+
+                int leaderId = resultSet.getInt("id");
+
+                try (PreparedStatement leaderboardStatement = connection.prepareStatement("""
+                    INSERT INTO Leaderboard(leaderboardTag, startValue, leaderId)
+                    VALUES(?, ?, ?)
+                    """)) {
+
+                    leaderboardStatement.setString(1, leaderboardTag);
+                    leaderboardStatement.setDouble(2, startValue);
+                    leaderboardStatement.setInt(3, leaderId);
+
+                    leaderboardStatement.executeUpdate();
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void updateStartValue(String uuid, String leaderboardTag, double startValue) {
+        try (PreparedStatement statement = connection.prepareStatement("""
+            UPDATE Leaderboard
+            SET startValue = ?
+            WHERE leaderboardTag = ?
+              AND leaderId = (
+                  SELECT id
+                  FROM Leader
+                  WHERE uuid = ?
+              )
+            """)) {
+
+            statement.setDouble(1, startValue);
+            statement.setString(2, leaderboardTag);
+            statement.setString(3, uuid);
+
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static LeaderValue getLeaderboard(Leader leader, String leaderboardTag) {
+        try (PreparedStatement statement = connection.prepareStatement("""
+            SELECT lb.*
+            FROM Leaderboard lb
+            JOIN Leader l ON lb.leaderId = l.id
+            WHERE l.uuid = ? AND lb.leaderboardTag = ?
+            """)) {
+
+            String uuid = leader.getOfflinePlayer().getUniqueId().toString();
+
+            statement.setString(1, uuid);
+            statement.setString(2, leaderboardTag);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    LeaderValue leaderValue = new LeaderValue(
+                            resultSet.getDouble("startValue")
+                    );
+                    return leaderValue;
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

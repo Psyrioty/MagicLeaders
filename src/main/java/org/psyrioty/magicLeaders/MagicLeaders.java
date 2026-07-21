@@ -14,7 +14,9 @@ import org.psyrioty.magicLeaders.GUI.LeaderboardMenu;
 import org.psyrioty.magicLeaders.Listeners.GUIEvents;
 import org.psyrioty.magicLeaders.Listeners.PlayerEvents;
 import org.psyrioty.magicLeaders.Objects.Leader;
+import org.psyrioty.magicLeaders.Objects.LeaderValue;
 import org.psyrioty.magicLeaders.Objects.Leaderboard;
+import org.psyrioty.magicLeaders.Utils.APIHelper;
 import org.psyrioty.magicLeaders.Utils.TaskLogic;
 
 import java.io.File;
@@ -53,15 +55,28 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
             throw new RuntimeException(e);
         }
         Requests.createTables();
+
+        leaders = Requests.getLeaders();
+        getAllLeaderboards();
+        createAllLeaderValue();
         //================
 
         //-----КОМАНДЫ-----
         this.getCommand("leaders").setExecutor(new MainCommand());
         //=================
 
-        getAllLeaderboards();
 
         TaskLogic.Update();
+    }
+
+    private void createAllLeaderValue(){
+        for(Leader leader: leaders){
+            for(Leaderboard leaderboard: leaderboards){
+                LeaderValue leaderValue = Requests.getLeaderboard(leader, leaderboard.getName());
+
+                leader.getLeaderboards().put(leaderboard, leaderValue);
+            }
+        }
     }
 
     private void registerEvents(){
@@ -120,6 +135,10 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
             String stringDate = config.getString("startDate");
             String name = config.getString("name");
 
+            List<String> commandsTopOne = config.getStringList("commands.one");
+            List<String> commandsTopTwo = config.getStringList("commands.two");
+            List<String> commandsTopThree = config.getStringList("commands.three");
+
             String id = file.getName().toLowerCase().replace(".yml", "");
 
             Bukkit.getLogger().info(
@@ -138,10 +157,10 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
                 continue;
             }
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             LocalDate startDate = LocalDate.parse(stringDate, formatter);
 
-            List<Leader> leadersTop = Requests.getTopLeaders(id);
+            //List<Leader> leadersTop = Requests.getTopLeaders(id);
 
             Leaderboard leaderboard = new Leaderboard(
                     placeholder,
@@ -149,10 +168,15 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
                     startDate,
                     name,
                     id,
+                    commandsTopOne,
+                    commandsTopTwo,
+                    commandsTopThree,
+                    config,
+                    file,
 
-                    checkLeader(leadersTop.get(0)),
-                    checkLeader(leadersTop.get(1)),
-                    checkLeader(leadersTop.get(2))
+                    null,
+                    null,
+                    null
             );
 
             leaderboards.add(leaderboard);
