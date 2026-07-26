@@ -5,9 +5,11 @@ public class LeaderValue {
     private double value = 0;
 
     public LeaderValue(
-            double startValue
+            double startValue,
+            double value
     ){
         this.startValue = startValue;
+        this.value = value;
     }
 
     public void setValue(double value) {

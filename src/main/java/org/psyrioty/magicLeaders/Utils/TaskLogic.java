@@ -86,7 +86,7 @@ public class TaskLogic {
                 break;
             }
 
-            if(leader != oldPositions.get(i)){
+            if(!leader.equals(oldPositions.get(i))){
                 messageLeaders.put(leader, i);
             }
 

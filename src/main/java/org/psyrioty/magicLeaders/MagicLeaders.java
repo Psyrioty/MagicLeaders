@@ -81,6 +81,14 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
             for(Leaderboard leaderboard: leaderboards){
                 LeaderValue leaderValue = Requests.getLeaderboard(leader, leaderboard.getName());
 
+                if(leader.getOfflinePlayer() == null) {
+                    continue;
+                }
+
+                if(leader.getOfflinePlayer().getName() == null) {
+                    continue;
+                }
+
                 if(leaderValue == null){
                     continue;
                 }
@@ -146,6 +154,8 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
             String stringDate = config.getString("startDate");
             String name = config.getString("name");
 
+            String textureHash = config.getString("textureHash");
+
             List<String> commandsTopOne = config.getStringList("commands.one");
             List<String> commandsTopTwo = config.getStringList("commands.two");
             List<String> commandsTopThree = config.getStringList("commands.three");
@@ -187,7 +197,9 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
 
                     null,
                     null,
-                    null
+                    null,
+
+                    textureHash
             );
 
             leaderboards.add(leaderboard);
@@ -204,7 +216,7 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
         }
 
         for(Leader leaderOld: leaders){
-            if(leaderOld.getUuid().equals(leader.getUuid())){
+            if(leaderOld.getOfflinePlayer().getUniqueId().toString().equals(leader.getOfflinePlayer().getUniqueId().toString())){
                 return leaderOld;
             }
         }

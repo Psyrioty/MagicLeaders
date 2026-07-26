@@ -1,11 +1,14 @@
 package org.psyrioty.magicLeaders.Listeners;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.psyrioty.magicLeaders.Database.Requests;
 import org.psyrioty.magicLeaders.MagicLeaders;
 import org.psyrioty.magicLeaders.Objects.Leader;
@@ -32,7 +35,7 @@ public class PlayerEvents implements Listener {
         checkRewards(player);
 
         for(Leader leader: leaders){
-            if(leader.getUuid().toString().equals(player.getUniqueId().toString())){
+            if(leader.getOfflinePlayer().getUniqueId().toString().equals(player.getUniqueId().toString())){
                 //leader.setPlayer(Bukkit.getOfflinePlayer(player.getUniqueId()));
                 leader.setPlayer(Bukkit.getOfflinePlayer(player.getName()));
                 return;
@@ -47,14 +50,17 @@ public class PlayerEvents implements Listener {
         Bukkit.getScheduler().runTaskAsynchronously(MagicLeaders.getPlugin(), () -> {
             Requests.addLeader(leader);
 
-            for(Leaderboard leaderboard: MagicLeaders.getLeaderboards()) {
-                Bukkit.getScheduler().runTaskAsynchronously(MagicLeaders.getPlugin(), () -> {
-                    Requests.addLeaderboard(
-                            player.getUniqueId().toString(),
-                            leaderboard.getName(),
-                            PlaceholderAPIPlugin.getPlaceholderDouble(leaderboard.getPlaceholder(), player)
-                    );
-                });
+
+
+            for(Leaderboard leaderboard: leader.getLeaderboards().keySet()) {
+                double value = PlaceholderAPIPlugin.getPlaceholderDouble(leaderboard.getPlaceholder(), player);
+
+                Requests.addLeaderboard(
+                        player.getUniqueId().toString(),
+                        leaderboard.getName(),
+                        value,
+                        value
+                );
             }
         });
     }
@@ -62,6 +68,10 @@ public class PlayerEvents implements Listener {
     private void checkRewards(Player player){
         Bukkit.getScheduler().runTaskAsynchronously(MagicLeaders.getPlugin(), () -> {
             List<String> rewards = Requests.getRewards(player.getUniqueId().toString());
+
+            if(checkFreeItems(player) < rewards.size()){
+                return;
+            }
 
             for(String command: rewards){
                 Bukkit.getScheduler().runTask(MagicLeaders.getPlugin(), () -> {
@@ -71,6 +81,28 @@ public class PlayerEvents implements Listener {
 
             Requests.removeRewards(player.getUniqueId().toString());
         });
+    }
+
+    private int checkFreeItems(Player player){
+        Inventory inventory = player.getInventory();
+
+
+        int freeItems = 0;
+
+        for(int i = 0; i < 36; i++){
+            ItemStack itemStack = inventory.getItem(i);
+
+            if(itemStack == null){
+                freeItems++;
+                continue;
+            }
+
+            if(itemStack.getType() == Material.AIR){
+                freeItems++;
+            }
+        }
+
+        return freeItems;
     }
 
 

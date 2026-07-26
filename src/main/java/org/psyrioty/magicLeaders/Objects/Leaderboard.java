@@ -9,7 +9,9 @@ import org.psyrioty.magicLeaders.Utils.PlaceholderAPIPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,6 +30,8 @@ public class Leaderboard {
     String id;
     FileConfiguration config;
     File file;
+
+    String textureHash = "";
 
 
     //-----ТОПЫ----
@@ -48,7 +52,9 @@ public class Leaderboard {
 
             Leader topOne,
             Leader topTwo,
-            Leader topThree
+            Leader topThree,
+
+            String textureHash
     ){
         this.placeholder = placeholder;
         this.period = period;
@@ -60,6 +66,10 @@ public class Leaderboard {
         this.rewardCommandsTopThree = rewardCommandsTopThree;
         this.config = config;
         this.file = file;
+
+        if(textureHash != null) {
+            this.textureHash = textureHash;
+        }
 
         if(topOne != null) {
             LeaderValue values = topOne.getLeaderboards().get(this);
@@ -96,6 +106,10 @@ public class Leaderboard {
         }
     }
 
+    public String getTextureHash() {
+        return textureHash;
+    }
+
     public String getName() {
         return name;
     }
@@ -112,7 +126,6 @@ public class Leaderboard {
 
                 int i = 0;
                 for(Leader leader: tops.keySet()){
-                    Bukkit.getLogger().info(leader.getOfflinePlayer().getName());
                     switch (i){
                         case 0:
                             leader.giveReward(rewardCommandsTopOne);
@@ -140,12 +153,26 @@ public class Leaderboard {
         startDate = LocalDate.now();
 
         for(Leader leader: MagicLeaders.getLeaders()){
+            if(!leader.getOfflinePlayer().isOnline()){
+                Bukkit.getScheduler().runTaskAsynchronously(MagicLeaders.getPlugin(), () -> {
+                    Requests.removeLeaderboard(
+                            leader.getOfflinePlayer().getUniqueId().toString(),
+                            name
+                    );
+                });
+
+                leader.getLeaderboards().remove(this);
+
+                continue;
+            }
+
             double startValue = PlaceholderAPIPlugin.getPlaceholderDouble(placeholder, leader.getOfflinePlayer());
 
             config.set("startDate", startDate.toString());
             config.save(file);
 
             LeaderValue leaderValueNew = new LeaderValue(
+                    startValue,
                     startValue
             );
 
@@ -154,6 +181,7 @@ public class Leaderboard {
                 Requests.updateStartValue(
                         leader.getOfflinePlayer().getUniqueId().toString(),
                         name,
+                        startValue,
                         startValue
                 );
             });
@@ -161,6 +189,18 @@ public class Leaderboard {
     }
 
     public void CheckValue(Leader leader){
+        if(!leader.getOfflinePlayer().isOnline()){
+            LeaderValue values = leader.getLeaderboards().get(this);
+
+            if(values == null){
+                return;
+            }
+
+            checkLeads(leader, values);
+
+            return;
+        }
+
         double value = PlaceholderAPIPlugin.getPlaceholderDouble(placeholder, leader.getOfflinePlayer());
 
         HashMap<Leaderboard, LeaderValue> leaderboards = leader.getLeaderboards();
@@ -168,20 +208,25 @@ public class Leaderboard {
         LeaderValue values = leaderboards.get(this);
 
         if(values == null){
-            values = new LeaderValue(value);
+            values = new LeaderValue(value, value);
             values.setValue(value);
 
-            Bukkit.getScheduler().runTaskAsynchronously(MagicLeaders.getPlugin(), () -> {
-                OfflinePlayer player = leader.getOfflinePlayer();
+            OfflinePlayer player = leader.getOfflinePlayer();
 
-                Requests.addLeaderboard(
-                        player.getUniqueId().toString(),
-                        name,
-                        value
-                );
-            });
+            Requests.addLeaderboard(
+                    player.getUniqueId().toString(),
+                    name,
+                    value,
+                    value
+            );
         }else{
             values.setValue(value);
+
+            Requests.updateValue(
+                    leader.getOfflinePlayer().getUniqueId().toString(),
+                    name,
+                    value
+            );
         }
 
         leaderboards.put(this, values);
@@ -252,5 +297,27 @@ public class Leaderboard {
                         LinkedHashMap::new
                 ));
         //tops = newTops;
+    }
+
+    public String getRemainingTime() {
+        LocalDate today = LocalDate.now();
+
+        LocalDate nextReset = startDate;
+
+        while (!nextReset.isAfter(today)) {
+            nextReset = nextReset.plusDays(period);
+        }
+
+        LocalDateTime resetTime = nextReset.atStartOfDay();
+
+        Duration duration = Duration.between(LocalDateTime.now(), resetTime);
+
+        long days = duration.toDays();
+        long hours = duration.toHoursPart();
+        long minutes = duration.toMinutesPart();
+        long seconds = duration.toSecondsPart();
+
+        return String.format("%d д. %d ч. %d м. %d с.",
+                days, hours, minutes, seconds);
     }
 }

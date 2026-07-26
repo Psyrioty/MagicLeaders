@@ -58,6 +58,7 @@ public class Requests {
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     leaderboardTag TEXT NOT NULL,
                     startValue REAL NOT NULL,
+                    value REAL NOT NULL,
                     leaderId INTEGER NOT NULL,
                     FOREIGN KEY (leaderId) REFERENCES Leader(id)
                 )
@@ -316,7 +317,7 @@ public class Requests {
     }
     */
 
-    public static void addLeaderboard(String uuid, String leaderboardTag, double startValue) {
+    public static void addLeaderboard(String uuid, String leaderboardTag, double startValue, double value) {
         try (PreparedStatement leaderStatement = connection.prepareStatement(
                 "SELECT id FROM Leader WHERE uuid = ?")) {
 
@@ -331,13 +332,14 @@ public class Requests {
                 int leaderId = resultSet.getInt("id");
 
                 try (PreparedStatement leaderboardStatement = connection.prepareStatement("""
-                    INSERT INTO Leaderboard(leaderboardTag, startValue, leaderId)
-                    VALUES(?, ?, ?)
+                    INSERT INTO Leaderboard(leaderboardTag, startValue, leaderId, value)
+                    VALUES(?, ?, ?, ?)
                     """)) {
 
                     leaderboardStatement.setString(1, leaderboardTag);
                     leaderboardStatement.setDouble(2, startValue);
                     leaderboardStatement.setInt(3, leaderId);
+                    leaderboardStatement.setDouble(4, value);
 
                     leaderboardStatement.executeUpdate();
                 }
@@ -348,10 +350,10 @@ public class Requests {
         }
     }
 
-    public static void updateStartValue(String uuid, String leaderboardTag, double startValue) {
+    public static void updateStartValue(String uuid, String leaderboardTag, double startValue, double value) {
         try (PreparedStatement statement = connection.prepareStatement("""
             UPDATE Leaderboard
-            SET startValue = ?
+            SET value = ?, startValue = ?
             WHERE leaderboardTag = ?
               AND leaderId = (
                   SELECT id
@@ -360,7 +362,31 @@ public class Requests {
               )
             """)) {
 
-            statement.setDouble(1, startValue);
+            statement.setDouble(1, value);
+            statement.setDouble(2, startValue);
+            statement.setString(3, leaderboardTag);
+            statement.setString(4, uuid);
+
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void updateValue(String uuid, String leaderboardTag, double value) {
+        try (PreparedStatement statement = connection.prepareStatement("""
+            UPDATE Leaderboard
+            SET value = ?
+            WHERE leaderboardTag = ?
+              AND leaderId = (
+                  SELECT id
+                  FROM Leader
+                  WHERE uuid = ?
+              )
+            """)) {
+
+            statement.setDouble(1, value);
             statement.setString(2, leaderboardTag);
             statement.setString(3, uuid);
 
@@ -387,7 +413,8 @@ public class Requests {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     LeaderValue leaderValue = new LeaderValue(
-                            resultSet.getDouble("startValue")
+                            resultSet.getDouble("startValue"),
+                            resultSet.getDouble("value")
                     );
                     return leaderValue;
                 }
@@ -398,5 +425,26 @@ public class Requests {
         }
 
         return null;
+    }
+
+    public static void removeLeaderboard(String uuid, String leaderboardTag) {
+        try (PreparedStatement statement = connection.prepareStatement("""
+            DELETE FROM Leaderboard
+            WHERE leaderboardTag = ?
+              AND leaderId = (
+                  SELECT id
+                  FROM Leader
+                  WHERE uuid = ?
+              )
+            """)) {
+
+            statement.setString(1, leaderboardTag);
+            statement.setString(2, uuid);
+
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
