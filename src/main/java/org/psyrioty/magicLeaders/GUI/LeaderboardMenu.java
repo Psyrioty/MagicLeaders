@@ -103,10 +103,16 @@ public class LeaderboardMenu implements InventoryHolder {
                     ""
             ));
 
+            int k = 0;
             for(Leader leaderTop: tops.keySet()){
                 lore.add(mm.deserialize(
                         "<#98FB98>"  + leaderTop.getOfflinePlayer().getName() + " <#3CB371>" + tops.get(leaderTop)
                 ));
+
+                k++;
+                if(k > 2){
+                    return;
+                }
             }
 
             if(tops.size() < 3){

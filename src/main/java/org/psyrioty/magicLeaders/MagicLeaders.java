@@ -81,15 +81,16 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
             for(Leaderboard leaderboard: leaderboards){
                 LeaderValue leaderValue = Requests.getLeaderboard(leader, leaderboard.getName());
 
+                if(leaderValue == null){
+                    Bukkit.getLogger().severe("MagicLeaders пустое значение");
+                    continue;
+                }
+
                 if(leader.getOfflinePlayer() == null) {
                     continue;
                 }
 
                 if(leader.getOfflinePlayer().getName() == null) {
-                    continue;
-                }
-
-                if(leaderValue == null){
                     continue;
                 }
 

@@ -198,6 +198,8 @@ public class Leaderboard {
 
             checkLeads(leader, values);
 
+            tops.put(leader, values.getResult());
+
             return;
         }
 
@@ -230,6 +232,8 @@ public class Leaderboard {
         }
 
         leaderboards.put(this, values);
+
+        tops.put(leader, values.getResult());
 
         checkLeads(leader, values);
     }
