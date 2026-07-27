@@ -111,7 +111,7 @@ public class LeaderboardMenu implements InventoryHolder {
 
                 k++;
                 if(k > 2){
-                    return;
+                    break;
                 }
             }
 
