@@ -15,6 +15,7 @@ public class TaskLogic {
     static BukkitTask update;
     static Set<Leader> leaderSet;
     static Set<Leaderboard> leaderboardSet;
+    static int timerMessage = 0;
 
     public TaskLogic(){
         leaderSet = MagicLeaders.getLeaders();
@@ -32,7 +33,7 @@ public class TaskLogic {
             }
 
             for(Leaderboard leaderboard: leaderboardSet){
-                HashMap<Leader, Double> oldTops = leaderboard.getTops(); //старые топы
+                HashMap<Leader, Double> oldTops = new HashMap<>(leaderboard.getTops()); //старые топы
 
                 for (Leader leader: leaderSet){
                     leaderboard.CheckValue(leader);
@@ -42,12 +43,17 @@ public class TaskLogic {
 
                 HashMap<Leader, Double> newTops = leaderboard.getTops(); //новые топы, для уведов
 
-                checkUpdateTops(
-                        oldTops,
-                        newTops,
-                        leaderboard
-                );
+                if(timerMessage > 9) {
+                    checkUpdateTops(
+                            oldTops,
+                            newTops,
+                            leaderboard
+                    );
+                    timerMessage = 0;
+                }
             }
+
+            timerMessage++;
         }, 20L * 60L, 20L * 60L);
     }
 
