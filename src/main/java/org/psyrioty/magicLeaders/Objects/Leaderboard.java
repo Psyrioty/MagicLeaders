@@ -161,7 +161,18 @@ public class Leaderboard {
                     );
                 });
 
-                leader.getLeaderboards().remove(this);
+                //leader.getLeaderboards().remove(this);
+
+                HashMap<Leaderboard, LeaderValue> leaderValueHashMap = leader.getLeaderboards();
+
+                LeaderValue leaderValue = leaderValueHashMap.get(this);
+
+                LeaderValue newLeaderValue = new LeaderValue(
+                        leaderValue.getResult(),
+                        leaderValue.getResult()
+                );
+
+                leaderValueHashMap.put(this, newLeaderValue);
 
                 continue;
             }
