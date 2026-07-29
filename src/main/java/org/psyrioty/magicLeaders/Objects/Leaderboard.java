@@ -207,7 +207,7 @@ public class Leaderboard {
                 return;
             }
 
-            checkLeads(leader, values);
+            //checkLeads(leader, values);
 
             tops.put(leader, values.getResult());
 
@@ -246,13 +246,25 @@ public class Leaderboard {
 
         tops.put(leader, values.getResult());
 
-        checkLeads(leader, values);
+        //checkLeads(leader, values);
     }
 
     public String getPlaceholder() {
         return placeholder;
     }
 
+    public void topsSort(){
+        tops = tops.entrySet().stream()
+                .sorted(Map.Entry.<Leader, Double>comparingByValue().reversed())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
+    }
+
+    /*
     private void checkLeads(Leader leader, LeaderValue values){
 
         HashMap<Leader, Double> newTops = new HashMap<>();
@@ -313,6 +325,7 @@ public class Leaderboard {
                 ));
         //tops = newTops;
     }
+    */
 
     public String getRemainingTime() {
         LocalDate today = LocalDate.now();

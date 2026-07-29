@@ -16,6 +16,7 @@ public class TaskLogic {
     static Set<Leader> leaderSet;
     static Set<Leaderboard> leaderboardSet;
     static int timerMessage = 0;
+    static HashMap<Leader, Double> oldTops;
 
     public TaskLogic(){
         leaderSet = MagicLeaders.getLeaders();
@@ -33,7 +34,11 @@ public class TaskLogic {
             }
 
             for(Leaderboard leaderboard: leaderboardSet){
-                HashMap<Leader, Double> oldTops = new HashMap<>(leaderboard.getTops()); //старые топы
+                if(timerMessage == 0){
+                    oldTops = new HashMap<>(leaderboard.getTops());
+                }
+
+                //HashMap<Leader, Double> oldTops = new HashMap<>(leaderboard.getTops()); //старые топы
 
                 for (Leader leader: leaderSet){
                     leaderboard.CheckValue(leader);
@@ -41,9 +46,9 @@ public class TaskLogic {
 
                 leaderboard.CheckPeriod();
 
-                HashMap<Leader, Double> newTops = leaderboard.getTops(); //новые топы, для уведов
-
                 if(timerMessage > 9) {
+                    HashMap<Leader, Double> newTops = leaderboard.getTops(); //новые топы, для уведов
+
                     checkUpdateTops(
                             oldTops,
                             newTops,
@@ -51,6 +56,8 @@ public class TaskLogic {
                     );
                     timerMessage = 0;
                 }
+
+                leaderboard.topsSort();
             }
 
             timerMessage++;

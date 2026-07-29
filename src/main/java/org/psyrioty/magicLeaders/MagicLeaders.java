@@ -1,15 +1,12 @@
 package org.psyrioty.magicLeaders;
 
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 import org.psyrioty.magicLeaders.Commands.MainCommand;
 import org.psyrioty.magicLeaders.Database.Requests;
 import org.psyrioty.magicLeaders.GUI.LeaderboardMenu;
@@ -19,14 +16,11 @@ import org.psyrioty.magicLeaders.Objects.Leader;
 import org.psyrioty.magicLeaders.Objects.LeaderValue;
 import org.psyrioty.magicLeaders.Objects.Leaderboard;
 import org.psyrioty.magicLeaders.Objects.Placeholder;
-import org.psyrioty.magicLeaders.Utils.APIHelper;
-import org.psyrioty.magicLeaders.Utils.PlaceholderAPIPlugin;
 import org.psyrioty.magicLeaders.Utils.TaskLogic;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -81,6 +75,7 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
             for(Leaderboard leaderboard: leaderboards){
                 LeaderValue leaderValue = Requests.getLeaderboard(leader, leaderboard.getName());
 
+
                 if(leaderValue == null){
                     Bukkit.getLogger().severe("MagicLeaders пустое значение");
                     continue;
@@ -90,11 +85,13 @@ public final class MagicLeaders extends JavaPlugin implements Listener {
                     continue;
                 }
 
-                if(leader.getOfflinePlayer().getName() == null) {
-                    continue;
-                }
+                //if(leader.getOfflinePlayer().getName() == null) {
+                //    continue;
+                //}
 
                 leader.getLeaderboards().put(leaderboard, leaderValue);
+
+                leaderboard.getTops().put(leader, leaderValue.getResult());
             }
         }
     }
