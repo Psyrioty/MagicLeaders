@@ -54,7 +54,7 @@ public class TaskLogic {
                             newTops,
                             leaderboard
                     );
-                    timerMessage = 0;
+                    timerMessage = -1;
                 }
 
                 leaderboard.topsSort();

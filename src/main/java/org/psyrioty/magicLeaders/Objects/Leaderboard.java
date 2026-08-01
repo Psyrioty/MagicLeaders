@@ -121,9 +121,6 @@ public class Leaderboard {
     public void CheckPeriod(){
         if (!LocalDate.now().isBefore(startDate.plusDays(period))) {
             try{
-
-                resetAll();
-
                 int i = 0;
                 for(Leader leader: tops.keySet()){
                     switch (i){
@@ -143,6 +140,9 @@ public class Leaderboard {
                     }
                     i++;
                 }
+
+                resetAll();
+
             }catch (Exception exception){
                 Bukkit.getLogger().severe("MagicLeaders error Leaderboard.java CheckPeriod() " + exception.getMessage());
             }
